@@ -1,0 +1,751 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enchanted Maze 🐢</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;700;900&display=swap');
+
+:root {
+    --pink: #ff65b5;
+    --purple: #8b5cf6;
+    --gold: #ffd966;
+    --ink: #31204e;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 25px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Nunito', sans-serif;
+    color: white;
+    background:
+        radial-gradient(ellipse at 15% 15%, #493276 0, transparent 40%),
+        radial-gradient(ellipse at 90% 85%, #513079 0, transparent 40%),
+        linear-gradient(135deg, #140f2e, #24113f 60%, #17102f);
+    overflow-x: hidden;
+}
+
+body::before {
+    content: "✦       ·        ✧       ·       ✦";
+    position: fixed;
+    top: 3%;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: #ffe5a6;
+    opacity: .35;
+    letter-spacing: 15px;
+    pointer-events: none;
+}
+
+.app {
+    width: 100%;
+    max-width: 650px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 22px;
+}
+
+.eyebrow {
+    display: inline-block;
+    padding: 7px 15px;
+    background: #ffffff12;
+    border: 1px solid #ffffff20;
+    border-radius: 30px;
+    color: #ffd9f0;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 3px;
+}
+
+h1 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: clamp(38px, 8vw, 60px);
+    line-height: 1.08;
+    margin: 15px 0 8px;
+    letter-spacing: -1px;
+    color: #fff0fa;
+    text-shadow:
+        0 3px 0 #b84d9e,
+        0 7px 25px #ff65b555;
+}
+
+h1 span { color: #ffd966; }
+
+.subtitle {
+    color: #c9bce8;
+    margin: 0;
+    font-size: 14px;
+}
+
+.panel {
+    padding: 15px;
+    border-radius: 25px;
+    border: 1px solid #ffffff24;
+    background: linear-gradient(145deg, #ffffff12, #ffffff06);
+    box-shadow: 0 20px 60px #00000030;
+    backdrop-filter: blur(10px);
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.stat {
+    border-radius: 16px;
+    padding: 12px 14px;
+    background: #ffffff0d;
+    border: 1px solid #ffffff12;
+}
+
+.stat-label {
+    color: #c5b4e7;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 24px;
+    color: var(--gold);
+    margin-top: 3px;
+}
+
+.stat:last-child .stat-value {
+    color: #ff9ed6;
+    font-size: 18px;
+}
+
+.arena {
+    position: relative;
+    overflow: hidden;
+    border-radius: 19px;
+    border: 3px solid #f5b7ff;
+    box-shadow:
+        0 0 0 5px #b565df25,
+        0 0 30px #d56aff35;
+    background: #19152e;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    touch-action: none;
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: #160d2bdc;
+    backdrop-filter: blur(7px);
+    text-align: center;
+}
+
+.overlay.show { display: flex; }
+
+.modal {
+    max-width: 310px;
+    width: 100%;
+    padding: 25px 18px;
+    background: linear-gradient(145deg, #443064, #281c48);
+    border: 1px solid #e8b4ff70;
+    border-radius: 24px;
+    box-shadow: 0 0 45px #e35bff24;
+}
+
+.modal .emoji { font-size: 48px; }
+
+.modal h2 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 31px;
+    margin: 8px 0;
+    color: #ffd966;
+}
+
+.modal p {
+    color: #e3d5f6;
+    font-size: 14px;
+}
+
+.game-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+button {
+    font-family: 'Nunito', sans-serif;
+    border: 0;
+    border-radius: 14px;
+    padding: 13px 10px;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform .15s, filter .15s, box-shadow .15s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+button:active {
+    transform: scale(.96);
+}
+
+.primary {
+    color: #3d2259;
+    background: linear-gradient(135deg, #ffe69a, #ffbc6b);
+    box-shadow: 0 4px 0 #be824b;
+}
+
+.secondary {
+    color: white;
+    background: linear-gradient(135deg, #aa6cf5, #7751db);
+    box-shadow: 0 4px 0 #52349f;
+}
+
+.directions {
+    margin-top: 19px;
+    text-align: center;
+}
+
+.directions h3 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 19px;
+    margin: 0 0 5px;
+    color: #ffe4f5;
+}
+
+.directions p {
+    color: #bfb0db;
+    font-size: 12px;
+    margin: 0 0 14px;
+}
+
+.dpad {
+    width: min(260px, 100%);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 9px;
+}
+
+.dpad button {
+    min-height: 54px;
+    font-size: 19px;
+    color: white;
+    background: linear-gradient(145deg, #5b397f, #3a275b);
+    border: 1px solid #d8b6ff45;
+    box-shadow: 0 4px 0 #211438;
+    touch-action: manipulation;
+}
+
+.dpad button:nth-child(2) {
+    color: #352046;
+    background: linear-gradient(145deg, #ffdce9, #ff91c7);
+    border-color: #ffb6db;
+    box-shadow: 0 4px 0 #b34c8c;
+}
+
+.dpad .blank { visibility: hidden; }
+
+.footer {
+    text-align: center;
+    color: #8f7eaf;
+    font-size: 11px;
+    margin-top: 21px;
+}
+
+@media (max-width: 400px) {
+    body { padding: 20px 9px; }
+    .panel { padding: 10px; }
+    .stat { padding: 10px; }
+    .stat-value { font-size: 21px; }
+    .dpad { gap: 7px; }
+    .dpad button { min-height: 50px; }
+}
+</style>
+</head>
+
+<body>
+<main class="app">
+
+<header>
+    <div class="eyebrow">✦ A LITTLE ADVENTURE ✦</div>
+    <h1>Enchanted <span>Maze</span></h1>
+    <p class="subtitle">A tiny turtle. A magical maze. A golden mission. 🌙</p>
+</header>
+
+<section class="panel">
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-label">✨ Golden Treasures</div>
+            <div class="stat-value" id="score">0</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">🐢 Adventure status</div>
+            <div class="stat-value" id="status">Ready to explore!</div>
+        </div>
+    </div>
+
+    <div class="arena">
+        <canvas id="maze" width="600" height="600"></canvas>
+
+        <div class="overlay" id="overlay">
+            <div class="modal">
+                <div class="emoji" id="endEmoji">💫</div>
+                <h2 id="endTitle">Adventure ended!</h2>
+                <p id="endText">Let's try again!</p>
+                <div class="game-buttons">
+                    <button class="primary" onclick="restartGame()">
+                        ↻ Play again
+                    </button>
+                    <button class="secondary" onclick="hideOverlay()">
+                        View maze
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="directions">
+        <h3>🎮 Guide your turtle</h3>
+        <p>Turn to face a direction, then move forward or backward.</p>
+
+        <div class="dpad">
+            <button class="blank" tabindex="-1"> </button>
+            <button onclick="move('f')" aria-label="Move forward">▲</button>
+            <button class="blank" tabindex="-1"> </button>
+
+            <button onclick="move('l')" aria-label="Turn left">↶</button>
+            <button onclick="move('b')" aria-label="Move backward">▼</button>
+            <button onclick="move('r')" aria-label="Turn right">↷</button>
+        </div>
+    </div>
+</section>
+
+<div style="text-align:center;margin-top:15px">
+    <button class="primary" onclick="restartGame()">✨ Restart adventure</button>
+</div>
+
+<footer class="footer">
+    MADE WITH 💜 & A LITTLE BIT OF TURTLE MAGIC
+</footer>
+
+</main>
+
+<script>
+const canvas = document.getElementById("maze");
+const ctx = canvas.getContext("2d");
+
+const scoreEl = document.getElementById("score");
+const statusEl = document.getElementById("status");
+const overlay = document.getElementById("overlay");
+
+const SIZE = 600;
+
+let player, goal, score, gameover, walls;
+let particles = [];
+let time = 0;
+
+function createWalls() {
+    return [
+        {x:-100,y:-200,w:220,h:20},
+        {x:0,y:0,w:20,h:380},
+        {x:70,y:200,w:160,h:20},
+        {x:150,y:100,w:20,h:220},
+        {x:150,y:-130,w:20,h:180},
+        {x:120,y:0,w:160,h:20},
+        {x:-100,y:60,w:200,h:20},
+        {x:-200,y:140,w:20,h:180}
+    ];
+}
+
+function px(x) { return SIZE / 2 + x; }
+function py(y) { return SIZE / 2 - y; }
+
+function roundedRect(x,y,w,h,r) {
+    ctx.beginPath();
+    ctx.roundRect(x,y,w,h,r);
+}
+
+function drawBackground() {
+    const bg = ctx.createLinearGradient(0,0,600,600);
+    bg.addColorStop(0,"#21193c");
+    bg.addColorStop(.5,"#19172f");
+    bg.addColorStop(1,"#302047");
+
+    ctx.fillStyle = bg;
+    ctx.fillRect(0,0,600,600);
+
+    // Subtle enchanted floor tiles
+    ctx.strokeStyle = "#c7a0ff0b";
+    ctx.lineWidth = 1;
+
+    for (let x=0;x<=600;x+=40) {
+        ctx.beginPath();
+        ctx.moveTo(x,0);
+        ctx.lineTo(x,600);
+        ctx.stroke();
+    }
+
+    for (let y=0;y<=600;y+=40) {
+        ctx.beginPath();
+        ctx.moveTo(0,y);
+        ctx.lineTo(600,y);
+        ctx.stroke();
+    }
+
+    // Little stars
+    for (let i=0;i<42;i++) {
+        const x = (i*137+31)%600;
+        const y = (i*89+23)%600;
+
+        ctx.globalAlpha = .3 + .3*Math.sin(time/15+i);
+        ctx.fillStyle = i%3===0 ? "#ffd966" : "#f3cfff";
+        ctx.beginPath();
+        ctx.arc(x,y,i%4===0 ? 1.7 : 1,0,Math.PI*2);
+        ctx.fill();
+    }
+
+    ctx.globalAlpha = 1;
+}
+
+function drawWalls() {
+    // Outer boundary
+    ctx.save();
+    ctx.shadowColor = "#e65bff";
+    ctx.shadowBlur = 12;
+    ctx.strokeStyle = "#e89cff";
+    ctx.lineWidth = 7;
+    ctx.strokeRect(px(-250),py(250),500,500);
+    ctx.restore();
+
+    for (const w of walls) {
+        const x = px(w.x)-w.w/2;
+        const y = py(w.y)-w.h/2;
+
+        // Wall shadow
+        ctx.save();
+        ctx.shadowColor = "#ff55be";
+        ctx.shadowBlur = 13;
+
+        roundedRect(x,y,w.w,w.h,5);
+        const gradient = ctx.createLinearGradient(x,y,x+w.w,y+w.h);
+        gradient.addColorStop(0,"#ff8ecf");
+        gradient.addColorStop(.45,"#ec58a8");
+        gradient.addColorStop(1,"#a72d77");
+
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        ctx.restore();
+
+        // Highlight
+        roundedRect(x+3,y+3,Math.max(0,w.w-6),Math.max(0,w.h-6),3);
+        ctx.strokeStyle = "#ffc0e044";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+    }
+}
+
+function drawGoal() {
+    const x = px(goal.x);
+    const y = py(goal.y);
+    const pulse = 1 + Math.sin(time/8)*.12;
+
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.scale(pulse,pulse);
+
+    ctx.shadowColor = "#ffd43b";
+    ctx.shadowBlur = 25;
+
+    ctx.beginPath();
+    ctx.arc(0,0,15,0,Math.PI*2);
+    ctx.fillStyle = "#ffd966";
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "#fff1a8";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Star inside the treasure
+    ctx.fillStyle = "#fffdf0";
+    ctx.font = "bold 18px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("✦",0,1);
+
+    ctx.restore();
+}
+
+function drawPlayer() {
+    const x = px(player.x);
+    const y = py(player.y);
+
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(-player.heading*Math.PI/180);
+
+    // Feet
+    ctx.fillStyle = "#47dc87";
+    for (const side of [-1,1]) {
+        for (const back of [-1,1]) {
+            ctx.beginPath();
+            ctx.ellipse(back*6,side*8,3,4,0,0,Math.PI*2);
+            ctx.fill();
+        }
+    }
+
+    // Shell shadow
+    ctx.shadowColor = "#55ff9c";
+    ctx.shadowBlur = 10;
+
+    ctx.beginPath();
+    ctx.ellipse(0,0,12,9,0,0,Math.PI*2);
+    ctx.fillStyle = "#16894d";
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "#83ffb4";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Shell pattern
+    ctx.beginPath();
+    ctx.moveTo(-7,0);
+    ctx.lineTo(7,0);
+    ctx.moveTo(0,-6);
+    ctx.lineTo(0,6);
+    ctx.strokeStyle = "#9fffc2";
+    ctx.lineWidth = 1.3;
+    ctx.stroke();
+
+    // Head
+    ctx.beginPath();
+    ctx.arc(12,0,5.5,0,Math.PI*2);
+    ctx.fillStyle = "#5af5a0";
+    ctx.fill();
+
+    // Eye
+    ctx.beginPath();
+    ctx.arc(14,-2,1.5,0,Math.PI*2);
+    ctx.fillStyle = "#183d2c";
+    ctx.fill();
+
+    // Tiny smile
+    ctx.beginPath();
+    ctx.arc(14,1,2,.1,1.3);
+    ctx.strokeStyle = "#23603d";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.restore();
+}
+
+function draw() {
+    drawBackground();
+    drawWalls();
+    drawGoal();
+    drawPlayer();
+}
+
+function circleHitsWall(x,y,r,w) {
+    const nx = Math.max(w.x-w.w/2,Math.min(x,w.x+w.w/2));
+    const ny = Math.max(w.y-w.h/2,Math.min(y,w.y+w.h/2));
+    return (x-nx)**2+(y-ny)**2 < r*r;
+}
+
+function hitsWall(x,y) {
+    if (x-10 < -250 || x+10 > 250 ||
+        y-10 < -250 || y+10 > 250) {
+        return true;
+    }
+
+    return walls.some(w => circleHitsWall(x,y,10,w));
+}
+
+function safeGoal(x,y) {
+    if (x < -220 || x > 220 || y < -220 || y > 220) {
+        return false;
+    }
+
+    if (Math.hypot(x-player.x,y-player.y)<70) return false;
+
+    return !walls.some(w => circleHitsWall(x,y,18,w));
+}
+
+function moveGoal() {
+    for (let i=0;i<1000;i++) {
+        const x = Math.round((Math.random()*400-200)/10)*10;
+        const y = Math.round((Math.random()*400-200)/10)*10;
+
+        if (safeGoal(x,y)) {
+            goal={x,y};
+            return;
+        }
+    }
+
+    goal={x:200,y:200};
+}
+
+function burst(x,y) {
+    for (let i=0;i<24;i++) {
+        const a=Math.random()*Math.PI*2;
+        const speed=1+Math.random()*3;
+
+        particles.push({
+            x:px(x),y:py(y),
+            vx:Math.cos(a)*speed,
+            vy:Math.sin(a)*speed,
+            life:30+Math.random()*15,
+            color:["#ffd966","#ff75bd","#c7a4ff","#8affb4"][i%4]
+        });
+    }
+}
+
+function drawParticles() {
+    for (const p of particles) {
+        ctx.globalAlpha=Math.max(0,p.life/45);
+        ctx.fillStyle=p.color;
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,3,0,Math.PI*2);
+        ctx.fill();
+    }
+
+    ctx.globalAlpha=1;
+
+    particles=particles.filter(p=>p.life>0);
+
+    for (const p of particles) {
+        p.x+=p.vx;
+        p.y+=p.vy;
+        p.life--;
+    }
+}
+
+function move(key) {
+    if (gameover) return;
+
+    if (key==="l") {
+        player.heading=(player.heading+90)%360;
+    } else if (key==="r") {
+        player.heading=(player.heading-90+360)%360;
+    } else {
+        const distance=key==="f" ? 30 : -30;
+        const radians=player.heading*Math.PI/180;
+
+        const nx=player.x+Math.cos(radians)*distance;
+        const ny=player.y+Math.sin(radians)*distance;
+
+        // Collision is checked before moving.
+        if (hitsWall(nx,ny)) {
+            endGame();
+            return;
+        }
+
+        player.x=nx;
+        player.y=ny;
+
+        if (Math.hypot(player.x-goal.x,player.y-goal.y)<25) {
+            burst(goal.x,goal.y);
+            score++;
+            scoreEl.textContent=score;
+            statusEl.textContent="Treasure found! ✨";
+            moveGoal();
+        } else {
+            statusEl.textContent="Exploring... 🌙";
+        }
+    }
+
+    draw();
+}
+
+function endGame() {
+    gameover=true;
+    document.getElementById("endEmoji").textContent="💫";
+    document.getElementById("endTitle").textContent="Oopsie!";
+    document.getElementById("endText").textContent=
+        "You collected "+score+" treasure"+(score===1?"":"s")+"! Ready for another adventure?";
+    statusEl.textContent="Adventure ended";
+    overlay.classList.add("show");
+}
+
+function hideOverlay() {
+    overlay.classList.remove("show");
+    if (gameover) {
+        statusEl.textContent="Game over";
+    }
+}
+
+function restartGame() {
+    player={x:-230,y:-230,heading:0};
+    score=0;
+    gameover=false;
+    walls=createWalls();
+    goal={x:200,y:200};
+    particles=[];
+    time=0;
+
+    scoreEl.textContent="0";
+    statusEl.textContent="Ready to explore!";
+    overlay.classList.remove("show");
+
+    draw();
+}
+
+// Keyboard controls
+document.addEventListener("keydown",function(e) {
+    const k=e.key.toLowerCase();
+
+    const keys={
+        f:"f",b:"b",l:"l",r:"r",
+        arrowup:"f",arrowdown:"b",
+        arrowleft:"l",arrowright:"r"
+    };
+
+    if (keys[k]) {
+        e.preventDefault();
+        move(keys[k]);
+    }
+});
+
+// Animated sparkles and treasure
+function animate() {
+    time++;
+    draw();
+    drawParticles();
+    requestAnimationFrame(animate);
+}
+
+restartGame();
+animate();
+</script>
+</body>
+</html>
